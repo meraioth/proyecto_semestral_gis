@@ -1,0 +1,152 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-7">
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            margin-left:auto;
+            margin-right:auto;      
+        }
+    </style>
+    <title>UdeC Concepcion</title>
+
+    <link type="text/css" rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+
+    <link type="text/css" rel="stylesheet" href="Plugins/Leaflet.draw/leaflet.draw.css" />
+    <script type="text/javascript" src="Plugins/Leaflet.draw/leaflet.draw.js"></script>
+
+    <script type="text/javascript" src="Plugins/Leaflet.wfst/leaflet.gml.js"></script>
+    <script type="text/javascript" src="Plugins/Leaflet.wfst/leaflet.wfst.js"></script>
+   
+</head>
+<body>
+    <div id='map'></div>
+    <script type="text/javascript">
+    //Base para la visualización de las capas, usando la clase de Leaflet 'L.TileLayer'
+    var osmLayer = new L.TileLayer(
+        'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+       );
+    var ESRIWorldImageryLayer = new L.TileLayer(
+        'http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+    );
+
+    //Se crea el objeto que contendrá la capa base
+    var baseMaps = {
+        'OpenStreetMap': osmLayer,
+        'ESRI World Imagery': ESRIWorldImageryLayer
+    };
+
+    //Se crea la capa correspondiente al TIFF del campus Concepción
+    var TIFF = new  L.tileLayer.wms(
+        'http:localhost:8080/geoserver/ows?', 
+        {layers: 'conce:tiff' , format: 'image/png',
+        transparent: true
+    });
+
+    //Se crean las capas correspondientes a los elementos de información: edificios, canchas, estacionamientos, calles, caminos peatonales y caminos techados
+    var edificios = new  L.tileLayer.wms(
+        'http:localhost:8080/geoserver/ows?', 
+        {layers: 'conce:edificios' , format: 'image/png',
+        transparent: true
+    });
+
+    var canchas = new  L.tileLayer.wms(
+        'http:localhost:8080/geoserver/ows?', 
+        {layers: 'conce:canchas' , format: 'image/png',
+        transparent: true
+    });
+
+    var estacionamientos = new  L.tileLayer.wms(
+        'http:localhost:8080/geoserver/ows?', 
+        {layers: 'conce:estacionamientos' , format: 'image/png',
+        transparent: true
+    });
+
+    var autopista = new  L.tileLayer.wms(
+        'http:localhost:8080/geoserver/ows?', 
+        {layers: 'conce:autopista' , format: 'image/png',
+        transparent: true
+    });
+
+    var peatonal = new  L.tileLayer.wms(
+        'http:localhost:8080/geoserver/ows?', 
+        {layers: 'conce:peatonal' , format: 'image/png',
+        transparent: true
+    });
+
+    var techado = new  L.tileLayer.wms(
+        'http:localhost:8080/geoserver/ows?', 
+        {layers: 'conce:techado' , format: 'image/png',
+        transparent: true
+    });
+
+    var dibujos = L.wfst(
+        null,
+        {url: "http://localhost:8080/geoserver/conce/ows",
+        featureNS: 'conce',featureType: 'dibujos',
+        primaryKeyField: 'id',version: "1.1.0"
+    });
+
+    //Se agrupan las capas que se superpondran
+    var overlayMaps = {
+        'TIFF': TIFF,
+        'Edificios': edificios,
+        'Estacionamientos': estacionamientos,
+        'Canchas': canchas,
+        'Calles' : autopista,
+        'Caminos peatonales' : peatonal,
+        'Caminos techados' : techado,
+        'DIBUJITOS' : dibujos
+    }
+
+    //Creación del control de capas. Se utilizan el objeto capa base y el objeto que contiene las capas que se superpondrán
+    var layerControl = new L.control.layers(
+        baseMaps, 
+        overlayMaps
+    );
+
+    var drawControl = new L.Control.Draw({
+        draw: {
+            polyline: false,
+            circle: false,
+            rectangle: false,
+            marker: false
+        },
+        edit: {
+            featureGroup: dibujos,
+            edit: false
+        }
+    });
+
+    //Se crea el objeto mapa
+    var map = L.map('map');
+    map.setView(new L.LatLng(-36.832070, -73.035030), 17);
+
+    //Se agregan las capas que se mostraran por defecto al iniciar
+    map.addLayer(osmLayer);
+    //map.addLayer(TIFF);
+    //map.addLayer(edificios);
+    //map.addLayer(autopista);
+    map.addLayer(dibujos);
+
+    //Se agregan los controles para capas y dibujo
+    map.addControl(layerControl);
+    map.addControl(drawControl);
+    //Al momento de crear el poligono es llamada la funcion addLayer y es enviada en forma de GeoJson a Geoserver
+    map.on('draw:created', function (e) {
+        dibujos.addLayer(e.layer);
+    });
+
+    </script>
+</body>
+</html>
