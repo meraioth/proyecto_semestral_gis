@@ -181,34 +181,34 @@ print calc.processCalculation()
 # print calc.processCalculation()
 
 
-# from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
+from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
 
-# chLayer = qgis.utils.iface.activeLayer()
+chLayer = qgis.utils.iface.activeLayer()
 
-# entries = []
+entries = []
 
-# ch2 = QgsRasterCalculatorEntry()
-# ch2.ref = 'conce@2'
-# ch2.raster = chLayer
-# ch2.bandNumber = 2
-# entries.append(ch2)
+ch2 = QgsRasterCalculatorEntry()
+ch2.ref = 'conce@2'
+ch2.raster = chLayer
+ch2.bandNumber = 2
+entries.append(ch2)
 
-# ch4 = QgsRasterCalculatorEntry()
-# ch4.ref = 'conce@4'
-# ch4.raster = chLayer
-# ch4.bandNumber = 4
-# entries.append(ch4)
+ch4 = QgsRasterCalculatorEntry()
+ch4.ref = 'conce@4'
+ch4.raster = chLayer
+ch4.bandNumber = 4
+entries.append(ch4)
 
-# calc = QgsRasterCalculator(
-# 	'( ( conce@4 - conce@2 ) / ( conce@4 + conce@2 ) )',
-# 	'/Users/meraioth/Desktop/NDVI.tif',
-# 	'GTiff',
-# 	chLayer.extent(),
-# 	chLayer.width(),
-# 	chLayer.height(),
-# 	entries
-# )
-# print calc.processCalculation()
+calc = QgsRasterCalculator(
+	'( ( conce@4 - conce@2 ) / ( conce@4 + conce@2 ) )',
+	'/Users/meraioth/Desktop/NDVI.tif',
+	'GTiff',
+	chLayer.extent(),
+	chLayer.width(),
+	chLayer.height(),
+	entries
+)
+print calc.processCalculation()
 
 # from qgis.analysis import QgsRasterCalculator, QgsRasterCalculatorEntry
 

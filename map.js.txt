@@ -1,0 +1,95 @@
+var map; // the map object
+var layers = {};
+var drawControl;
+
+function initMap(){
+    // create a map in the "map" div, set the view to a given place and zoom
+    map = L.map('map').setView(new L.LatLng(-36.83, -73.03), 15);
+
+    // Set the map background to our WMS layer of the world boundaries
+    // Replace this with your own background layer
+
+    layers.osmLayer = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    var calles = L.tileLayer.wms('http://localhost:8080/geoserver/ows?', {
+        layers: 'proyecto:calles',
+        format: 'image/png',
+        transparent: true
+    });
+
+    var edificios = L.tileLayer.wms('http://localhost:8080/geoserver/ows?', {
+        layers: 'proyecto:edificios',
+        format: 'image/png',
+        transparent: true
+    });
+    
+    var usoDeSuelo = L.tileLayer.wms('http://localhost:8080/geoserver/ows?', {
+        layers: 'proyecto:usosuelo',
+        format: 'image/png',
+        transparent: true
+    });
+    var tiendas = L.tileLayer.wms('http://localhost:8080/geoserver/ows?', {
+        layers: 'proyecto:tiendas',
+        format: 'image/png',
+        transparent: true
+    });
+    var raster = L.tileLayer.wms('http://localhost:8080/geoserver/ows?', {
+        layers: 'proyecto:conceTiff',
+        format: 'image/png',
+        transparent: true
+    });
+
+    // Initialize the WFST layer 
+    layers.drawnItems = L.wfst(null,{
+        url : 'http://localhost:8080/geoserver/proyecto/wfs',
+        featureNS : 'proyecto',
+        featureType : 'dibujos',
+        primaryKeyField: 'id'
+    }).addTo(map);
+
+    var overlayMaps = {
+        'calles': calles,
+        'edificios': edificios,
+        'uso de suelo': usoDeSuelo,
+        'tiendas': tiendas,
+        'conceTiff': raster,
+        'dibujos': layers.drawnItems
+    };
+
+
+    var layerControl = new L.control.layers(null,overlayMaps);
+    map.addControl(layerControl);
+
+    var featureGroup = L.featureGroup().addTo(map);
+    var drawControl = new L.Control.Draw({
+        draw: {
+            polyline: true,
+            polygon: false,
+            circle: false,
+            rectangle: false,
+            marker: false
+        },
+        edit: {
+            featureGroup: featureGroup
+        }
+    });
+    map.addControl(drawControl);
+
+    
+
+        // Initialize the draw control and pass it the FeatureGroup of editable layers
+    
+    
+    map.on('draw:created', function(e) {
+        featureGroup.addLayer(e.layer);
+    });
+
+    map.on('draw:created', function (e) {
+        layers.drawnItems.addLayer(e.layer);
+    });
+    map.on('draw:edited', function (e) {
+        layers.drawnItems.wfstSave(e.layers);
+    });
+
+
+}
